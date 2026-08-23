@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>reionemu</title>
+<meta name="description" content="Machine-learning emulators for reionization simulations, with uncertainty quantification.">
+<link rel="icon" href="assets/reionemu-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: linear-gradient(180deg, #f4f8fc 0%, #edf4fb 100%);
+  --card: rgba(255, 255, 255, 0.86);
+  --card-border: rgba(53, 86, 120, 0.14);
+  --card-shadow: 0 18px 40px rgba(67, 94, 126, 0.12);
+  --text-soft: #4c6278;
+  --text-strong: #102338;
+  --accent-text: #0e7490;
+  --glow: rgba(76, 201, 240, 0.18);
+  --rule: rgba(53, 86, 120, 0.14);
+  --btn-shadow: 0 12px 30px rgba(76, 201, 240, 0.2);
+  --bg-solid: #f4f8fc;
+
+  --f-sans: "Roboto", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+  --f-mono: "Roboto Mono", SFMono-Regular, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: radial-gradient(circle at top, rgba(76, 201, 240, 0.18), transparent 32%),
+          linear-gradient(180deg, #08111f 0%, #09131c 45%, #050a11 100%);
+    --card: rgba(10, 18, 30, 0.78);
+    --card-border: rgba(111, 168, 220, 0.2);
+    --card-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+    --text-soft: #a9bfd7;
+    --text-strong: #edf4ff;
+    --accent-text: #79d6ff;
+    --glow: rgba(76, 201, 240, 0.28);
+    --rule: rgba(111, 168, 220, 0.12);
+    --bg-solid: #050a11;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: radial-gradient(circle at top, rgba(76, 201, 240, 0.18), transparent 32%),
+        linear-gradient(180deg, #08111f 0%, #09131c 45%, #050a11 100%);
+  --card: rgba(10, 18, 30, 0.78);
+  --card-border: rgba(111, 168, 220, 0.2);
+  --card-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  --text-soft: #a9bfd7;
+  --text-strong: #edf4ff;
+  --accent-text: #79d6ff;
+  --glow: rgba(76, 201, 240, 0.28);
+  --rule: rgba(111, 168, 220, 0.12);
+  --bg-solid: #050a11;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  min-height: 100%;
+  background: var(--bg-solid);
+  font-size: 109%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-strong);
+  font-family: var(--f-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+  display: flex;
+  flex-direction: column;
+  padding: 0 1.5rem;
+}
+
+.page {
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+  flex: 1;
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  padding: 4rem 0 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-logo {
+  display: block;
+  width: min(560px, 88%);
+  height: auto;
+  margin: 0 0 1.75rem;
+  filter: drop-shadow(0 24px 52px var(--glow));
+}
+
+.hero-kicker {
+  margin: 0;
+  color: var(--accent-text);
+  font-size: clamp(1.05rem, 2.1vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  max-width: 31rem;
+}
+
+.hero-copy {
+  max-width: 42rem;
+  margin: 1.5rem 0 0;
+  color: var(--text-soft);
+  font-size: 1.14rem;
+  line-height: 1.72;
+  text-wrap: pretty;
+}
+
+/* ---------- cards ---------- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0 4.5rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 2.6rem 2.2rem 2.2rem;
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.card:hover,
+.card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--accent-text);
+}
+
+.card:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 4px; }
+
+.card-logo {
+  display: block;
+  width: auto;
+  max-width: 92%;
+  object-fit: contain;
+  margin: 0 auto 1.6rem;
+  filter: drop-shadow(0 18px 36px var(--glow));
+}
+
+.card-logo--package  { height: 187px; }
+.card-logo--platform { height: 177px; }
+
+.card-kicker {
+  color: var(--accent-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  color: var(--text-strong);
+}
+
+.card p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 1.03rem;
+  line-height: 1.68;
+  flex: 1;
+}
+
+.btn {
+  margin-top: 1.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  padding: 0.75em 1.25em;
+  background: #4cc9f0;
+  color: #062231;
+  box-shadow: var(--btn-shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn::after {
+  content: "";
+  width: 0.72em;
+  height: 0.72em;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+}
+.card:hover .btn::after { transform: rotate(45deg) translate(2px, -2px); }
+
+/* ---------- publications ---------- */
+
+.pubs {
+  margin: 0 0 4.5rem;
+}
+
+.pubs-kicker {
+  margin: 0 0 0.9rem;
+  color: var(--accent-text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.pubs-lede {
+  margin: 0 0 1.9rem;
+  max-width: none;
+  color: var(--text-soft);
+  font-size: 1.06rem;
+  line-height: 1.68;
+}
+
+.pub-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pub {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0.35rem 1.5rem;
+  align-items: start;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.pub-tag {
+  grid-row: span 2;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  padding-top: 0.25rem;
+}
+
+.pub-title {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.008em;
+  color: var(--text-strong);
+}
+
+.pub-title a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.pub-title a:hover { color: var(--accent-text); border-bottom-color: var(--accent-text); }
+
+.pub-title a:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.pub-meta {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.pub-meta .sep { opacity: 0.5; padding: 0 0.4rem; }
+.pub-meta code { font-family: var(--f-mono); font-size: 0.86em; overflow-wrap: anywhere; }
+
+@media screen and (max-width: 700px) {
+  .pub { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; padding: 1.35rem 1.4rem; }
+  .pub-tag { grid-row: auto; padding-top: 0; }
+}
+
+/* ---------- footer ---------- */
+
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem 0 2.5rem;
+  max-width: 62rem;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+  align-items: baseline;
+  font-family: var(--f-mono);
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+footer a {
+  color: var(--text-soft);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--card-border);
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 0;
+}
+footer a:hover { color: var(--accent-text); border-bottom-color: var(--accent-text); }
+footer a:focus-visible {
+  color: var(--accent-text);
+  outline: 2px solid var(--accent-text);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+footer .spacer { flex: 1; }
+
+@media screen and (max-width: 900px) {
+  .cards { grid-template-columns: 1fr; }
+  .hero { padding-top: 2.5rem; }
+  footer .spacer { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<main class="page">
+
+  <div class="hero">
+    <img class="hero-logo" src="assets/reionemu-logo.png" alt="reionemu">
+    <h1 class="hero-kicker">Machine-learning emulators for reionization science</h1>
+    <p class="hero-copy">
+      Turn expensive reionization simulations into fast, uncertainty-aware emulators, then serve
+      them through a production inference API. Explore parameter space without rerunning the physics.
+    </p>
+  </div>
+
+  <div class="cards">
+
+    <a class="card" href="/reionemu/" aria-label="reionemu package documentation">
+      <img class="card-logo card-logo--package" src="assets/reionemu-logo.png" alt="">
+      <span class="card-kicker">Python package</span>
+      <h2>reionemu</h2>
+      <p>Condense simulation outputs, compute summary statistics, assemble training datasets, and train uncertainty-aware emulators that predict observables from reionization parameters.</p>
+      <span class="btn">Documentation</span>
+    </a>
+
+    <a class="card" href="/platform/" aria-label="Platform documentation">
+      <img class="card-logo card-logo--platform" src="assets/reionemu-platform-logo.png" alt="">
+      <span class="card-kicker">Inference platform</span>
+      <h2>Platform</h2>
+      <p>Production inference for trained emulators: HTTP APIs, asynchronous jobs, and cloud deployment built on top of the package.</p>
+      <span class="btn">Documentation</span>
+    </a>
+
+  </div>
+
+  <section class="pubs" aria-labelledby="pubs-heading">
+    <h2 class="pubs-kicker" id="pubs-heading">Publications</h2>
+    <p class="pubs-lede">
+      If reionemu contributes to work you publish, please cite both the specific software release
+      you used and any relevant papers listed below. Each release is archived with its own DOI, so
+      the exact version you ran stays citable.
+    </p>
+
+    <ol class="pub-list">
+
+      <li class="pub">
+        <span class="pub-tag">Paper</span>
+        <h3 class="pub-title">A Bayesian Neural Network Emulator for the Reionization kSZ Power Spectrum</h3>
+        <p class="pub-meta">
+          Robert&nbsp;Pearce, Paul&nbsp;La&nbsp;Plante<span class="sep">&middot;</span>In preparation<span class="sep">&middot;</span>2026
+        </p>
+      </li>
+
+      <li class="pub">
+        <span class="pub-tag">Software</span>
+        <h3 class="pub-title">
+          <a href="https://doi.org/10.5281/zenodo.21766410">reionemu: Python package for emulating the kSZ angular power spectrum from reionization simulations</a>
+        </h3>
+        <p class="pub-meta">
+          Robert&nbsp;Pearce<span class="sep">&middot;</span>Zenodo<span class="sep">&middot;</span>2026<span class="sep">&middot;</span><code>10.5281/zenodo.21766410</code>
+        </p>
+      </li>
+
+      <!--
+      <li class="pub">
+        <span class="pub-tag">Paper</span>
+        <h3 class="pub-title">
+          <a href="https://doi.org/DOI-HERE">Paper title</a>
+        </h3>
+        <p class="pub-meta">
+          R. Pearce, Co-author<span class="sep">&middot;</span>Journal<span class="sep">&middot;</span>Year<span class="sep">&middot;</span><code>arXiv:0000.00000</code>
+        </p>
+      </li>
+      -->
+
+    </ol>
+  </section>
+
+</main>
+
+<footer>
+  <span>Robert Pearce</span>
+  <a href="https://github.com/reionemu" target="_blank" rel="noopener noreferrer">GitHub</a>
+  <a href="https://pypi.org/project/reionemu/" target="_blank" rel="noopener noreferrer">PyPI</a>
+  <a href="https://doi.org/10.5281/zenodo.21766410" target="_blank" rel="noopener noreferrer">DOI 10.5281/zenodo.21766410</a>
+  <span class="spacer"></span>
+  <span>MIT</span>
+</footer>
+
+</body>
+</html>
